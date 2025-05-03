@@ -49,9 +49,47 @@ export default function Home() {
     }));
   };
 
+  //ADD ROW
+  const handleNewRow = async () => {
+    const id = randomId();
+    const now = new Date();
+    const oneMonthLater = new Date(now);
+    oneMonthLater.setMonth(now.getMonth() + 1);
+
+    const trip = {
+      id: id,
+      destination: '',
+      from: oneMonthLater.toISOString(),
+      till: oneMonthLater.toISOString(),
+      latitude: 36.8506, // Virginia Beach as default location
+      longitude: -75.9779,
+      status: 'Scheduled',
+      hotel: '',
+      hotelCost: 0,
+      transportMode: '',
+      transportCost: 0,
+      notes: '',
+    };
+
+    try {
+      await fetch('/api/trips', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ trip }),
+      });
+      console.log('Trip created ' + trip);
+      setRows((oldRows) => [...oldRows, trip]);
+      setRowModesModel((oldModel) => ({
+        ...oldModel,
+        [id]: { mode: GridRowModes.Edit },
+      }));
+    } catch (error) {
+      console.log('Error creating new trip ' + error);
+    }
+  };
+
   //DELETE ROW
   const handleDelete = async (id: { id: string }) => {
-    
     await deleteTrip(id.id);
     setRows((prevRows) => prevRows.filter((row) => row.id !== id.id));
     console.log('Deleted row ' + id.id);
@@ -156,7 +194,7 @@ export default function Home() {
     },
     { field: 'notes', headerName: 'Notes', width: 150, editable: true },
     {
-      field: 'Status',
+      field: 'status',
       headerName: 'Status',
       width: 100,
       editable: true,
@@ -190,52 +228,10 @@ export default function Home() {
   ];
 
   function EditToolbar(props: GridSlotProps['toolbar']) {
-    const { setRows, setRowModesModel } = props;
-
-    const handleClick = async () => {
-      const id = randomId();
-      const now = new Date();
-      const oneMonthLater = new Date(now);
-      oneMonthLater.setMonth(now.getMonth() + 1);
-      
-      const trip = {
-        id: id,
-        destination: '',
-        from: oneMonthLater.toISOString(),
-        till: oneMonthLater.toISOString(),
-        latitude: 0,
-        longitude: 0,
-        Status: 'Scheduled',
-        hotel: '',
-        hotelCost: 0,
-        transportMode: '',
-        transportCost: 0,
-        notes: '',
-      };
-
-
-      try {
-        await fetch('/api/trips', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ trip }),
-        });
-        console.log('Trip created ' + trip);
-      } catch (error) {
-        console.log('Error creating new trip ' + error);
-      }
-
-      setRows((oldRows) => [...oldRows, trip]);
-      setRowModesModel((oldModel) => ({
-        ...oldModel,
-        [id]: { mode: GridRowModes.Edit },
-      }));
-    };
-
     return (
       <Toolbar>
         <Tooltip title="Add record">
-          <ToolbarButton onClick={handleClick}>
+          <ToolbarButton onClick={handleNewRow}>
             <AddIcon fontSize="small" />
           </ToolbarButton>
         </Tooltip>
@@ -247,7 +243,11 @@ export default function Home() {
     <Layout>
       <div className="grid grid-rows-[0px_1fr_0px] min-h-screen pl-10 pb-10 pr-10 sm:p-10 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-[32px] row-start-2 sm:items-start">
+          <h1 className="text-4xl font-extrabold text-center tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+            USA trips
+          </h1>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <DynamicMap trips={rows} />
             <div className="">
               <DataGrid
                 rows={rows}
@@ -264,7 +264,6 @@ export default function Home() {
                 showToolbar
               />
             </div>
-            <DynamicMap trips={rows}/>
           </Box>
         </main>
       </div>

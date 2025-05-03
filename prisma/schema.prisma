@@ -26,8 +26,9 @@ model Trip {
   hotel          String?  @default("N/A")
   hotelCost      Decimal? @default(0.00) @db.Decimal(5, 2)
   transportMode  String?  @default("Unknown")
-  transportCost  Decimal? @default(0.00) @db.Decimal(5, 2)
+  transportCost  Decimal? @default(0.0) @db.Decimal(5, 2)
   latitude       Decimal? @default(0.0)  @db.Decimal(9, 6)
   longitude      Decimal? @default(0.0)  @db.Decimal(9, 6)
-  Status         Status?  @default(Completed)
+  status         Status?  @default(Completed)
+  notes          String?  @default("")
 }

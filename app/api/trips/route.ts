@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     console.error('POST error:', error);
     return NextResponse.json(
       { error: 'Failed to create trip' },
-      { status: 500 }
+      { status: 508 }
     );
   }
 }

@@ -11,7 +11,7 @@ import redMarker from './images/marker_icon_red.png';
 interface Trip {
   latitude: number;
   longitude: number;
-  Status: string;
+  status: string;
   destination: string;
 }
 
@@ -46,7 +46,7 @@ function FitBounds({ trips }: { trips: Trip[] }) {
       ]) as LatLngBoundsExpression;
       map.fitBounds(bounds);
     }
-  }, [trips, map]);
+  }, [map, trips]);
   return null;
 }
 
@@ -56,12 +56,12 @@ const drawlocations = (locations: Trip[]) => {
     <Marker
       key={index}
       position={[location.latitude, location.longitude] as LatLngExpression}
-      icon={location.Status === 'Completed' ? blueIcon : redIcon}
+      icon={location.status === 'Completed' ? blueIcon : redIcon}
     >
       <Popup>
         <strong>{location.destination}</strong>
         <br />
-        Status: {location.Status}
+        Status: {location.status}
       </Popup>
     </Marker>
   ));
