@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  nextjs-app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN: ${NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN}
+    env_file:
+      - .env.production
+    restart: always

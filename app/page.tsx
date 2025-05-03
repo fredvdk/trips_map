@@ -1,103 +1,273 @@
-import Image from "next/image";
+'use client';
+
+import { Box, Tooltip } from '@mui/material';
+import { useEffect, useState } from 'react';
+import Layout from './components/layout';
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridColDef,
+  GridRowId,
+  GridRowModel,
+  GridRowModes,
+  GridRowModesModel,
+  GridSlotProps,
+  ToolbarButton,
+  Toolbar,
+} from '@mui/x-data-grid';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import { randomId } from '@mui/x-data-grid-generator';
+
+import dynamic from 'next/dynamic';
+
+const DynamicMap = dynamic(() => import('./components/map'), {
+  ssr: false, // very important
+});
+
+const mapbox_accesstoken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+
+import { deleteTrip } from './tripService';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [rows, setRows] = useState<GridRowModel[]>([]);
+  const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+  useEffect(() => {
+    console.log('Getting all trips');
+    fetch('/api/trips')
+      .then((res) => res.json())
+      .then((data) => setRows(data));
+  }, []);
+
+  const handleEditClick = (id: GridRowId) => () => {
+    setRowModesModel((prevModel) => ({
+      ...prevModel,
+      [id]: { mode: GridRowModes.Edit },
+    }));
+  };
+
+  //DELETE ROW
+  const handleDelete = async (id: { id: string }) => {
+    
+    await deleteTrip(id.id);
+    setRows((prevRows) => prevRows.filter((row) => row.id !== id.id));
+    console.log('Deleted row ' + id.id);
+  };
+
+  //UPDATE ROW
+  const processRowUpdate = async (updatedRow: GridRowModel) => {
+    const latLon = await getLatLon(updatedRow.destination);
+    if (latLon == null) return;
+    updatedRow.latitude = latLon.latitude;
+    updatedRow.longitude = latLon.longitude;
+    try {
+      await fetch('/api/trips', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: updatedRow.id,
+          trip: updatedRow,
+        }),
+      });
+      setRows((prevRows) =>
+        prevRows.map((row) =>
+          row.id === updatedRow.id ? { ...updatedRow } : row
+        )
+      );
+      console.log('Updated row:', updatedRow);
+    } catch (error) {
+      console.error('Error in processRowUpdate:', error);
+    }
+    return updatedRow;
+  };
+
+  const processRowUpdateError = (error: unknown) =>
+    console.log(JSON.stringify(error));
+
+  const handleRowModesModelChange = (newModel: GridRowModesModel) => {
+    setRowModesModel(newModel);
+  };
+
+  const getLatLon = async (place: string) => {
+    let latLon = null;
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/search/geocode/v6/forward?q=${place}&access_token=${mapbox_accesstoken}`
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      latLon = data.features[0].properties.coordinates;
+      return latLon;
+    } catch (error) {
+      console.error('Error getting latlon:', error);
+      return { latitude: 0, longitude: 0 };
+    }
+  };
+
+  const columns: GridColDef[] = [
+    {
+      field: 'destination',
+      headerName: 'Destination',
+      width: 150,
+      editable: true,
+    },
+    {
+      field: 'from',
+      headerName: 'From',
+      width: 150,
+      editable: true,
+      type: 'date',
+      valueGetter: (value) => (value ? new Date(value) : null),
+    },
+    {
+      field: 'till',
+      headerName: 'Till',
+      width: 150,
+      editable: true,
+      type: 'date',
+      valueGetter: (value) => (value ? new Date(value) : null),
+    },
+    { field: 'hotel', headerName: 'Hotel', width: 150, editable: true },
+    {
+      field: 'hotelCost',
+      headerName: 'Hotel Cost',
+      width: 50,
+      editable: true,
+    },
+    {
+      field: 'transportMode',
+      headerName: 'Transport',
+      width: 50,
+      editable: true,
+    },
+    {
+      field: 'transportCost',
+      headerName: 'Transport Cost',
+      width: 50,
+      editable: true,
+    },
+    { field: 'notes', headerName: 'Notes', width: 150, editable: true },
+    {
+      field: 'Status',
+      headerName: 'Status',
+      width: 100,
+      editable: true,
+      type: 'singleSelect',
+      valueOptions: ['Completed', 'Scheduled'],
+    },
+    {
+      field: 'actions',
+      type: 'actions',
+      headerName: 'Actions',
+      width: 100,
+      cellClassName: 'actions',
+      getActions: ({ id }) => [
+        <GridActionsCellItem
+          key={`edit-${id}`}
+          icon={<EditIcon />}
+          label="Edit"
+          className="textPrimary"
+          onClick={handleEditClick(id)}
+          color="inherit"
+        />,
+        <GridActionsCellItem
+          key={`delete-${id}`}
+          icon={<DeleteIcon />}
+          label="Delete"
+          onClick={() => handleDelete({ id: id as number })}
+          color="inherit"
+        />,
+      ],
+    },
+  ];
+
+  function EditToolbar(props: GridSlotProps['toolbar']) {
+    const { setRows, setRowModesModel } = props;
+
+    const handleClick = async () => {
+      const id = randomId();
+      const now = new Date();
+      const oneMonthLater = new Date(now);
+      oneMonthLater.setMonth(now.getMonth() + 1);
+      
+      const trip = {
+        id: id,
+        destination: '',
+        from: oneMonthLater.toISOString(),
+        till: oneMonthLater.toISOString(),
+        latitude: 0,
+        longitude: 0,
+        Status: 'Scheduled',
+        hotel: '',
+        hotelCost: 0,
+        transportMode: '',
+        transportCost: 0,
+        notes: '',
+      };
+
+
+      try {
+        await fetch('/api/trips', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ trip }),
+        });
+        console.log('Trip created ' + trip);
+      } catch (error) {
+        console.log('Error creating new trip ' + error);
+      }
+
+      setRows((oldRows) => [...oldRows, trip]);
+      setRowModesModel((oldModel) => ({
+        ...oldModel,
+        [id]: { mode: GridRowModes.Edit },
+      }));
+    };
+
+    return (
+      <Toolbar>
+        <Tooltip title="Add record">
+          <ToolbarButton onClick={handleClick}>
+            <AddIcon fontSize="small" />
+          </ToolbarButton>
+        </Tooltip>
+      </Toolbar>
+    );
+  }
+
+  return (
+    <Layout>
+      <div className="grid grid-rows-[0px_1fr_0px] min-h-screen pl-10 pb-10 pr-10 sm:p-10 font-[family-name:var(--font-geist-sans)]">
+        <main className="flex flex-col gap-[32px] row-start-2 sm:items-start">
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <div className="">
+              <DataGrid
+                rows={rows}
+                columns={columns}
+                editMode="row"
+                rowModesModel={rowModesModel}
+                onRowModesModelChange={handleRowModesModelChange}
+                processRowUpdate={processRowUpdate}
+                onProcessRowUpdateError={processRowUpdateError}
+                slots={{ toolbar: EditToolbar }}
+                slotProps={{
+                  toolbar: { setRows, setRowModesModel },
+                }}
+                showToolbar
+              />
+            </div>
+            <DynamicMap trips={rows}/>
+          </Box>
+        </main>
+      </div>
+    </Layout>
   );
 }
