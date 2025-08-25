@@ -9,10 +9,13 @@ import blueMarker from './images/marker_icon_blue.png';
 import redMarker from './images/marker_icon_red.png';
 
 interface Trip {
+  id: string;
   latitude: number;
   longitude: number;
   status: string;
   destination: string;
+  from: Date;
+  till: Date;
 }
 
 interface MapProps {
@@ -35,6 +38,12 @@ const redIcon = new Icon({
   popupAnchor: [1, -34],
   shadowSize: [41, 41],
 });
+
+function formatDate(isoDate: Date) {
+  const date = new Date(isoDate);
+  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(',', '');
+}
+
 
 function FitBounds({ trips }: { trips: Trip[] }) {
   const map = useMap();
@@ -61,7 +70,9 @@ const drawlocations = (locations: Trip[]) => {
       <Popup>
         <strong>{location.destination}</strong>
         <br />
-        Status: {location.status}
+        {formatDate(location.from)} - {formatDate(location.till)}
+        <br />
+        <a href={`/${location.id}/edit`}>Details</a>
       </Popup>
     </Marker>
   ));
@@ -80,7 +91,7 @@ export default function Map(props: MapProps) {
     <MapContainer
       center={initialPosition}
       zoom={6}
-      style={{ height: '500px', width: '100%' }}
+      className='w-screen h-[100vh]'
     >
       <FitBounds trips={trips} />
       <TileLayer

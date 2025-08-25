@@ -30,10 +30,13 @@ const DynamicMap = dynamic(() => import('./components/map'), {
 const mapbox_accesstoken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 
 import { deleteTrip } from './tripService';
+import {useRouter} from 'next/navigation';
 
 export default function Home() {
   const [rows, setRows] = useState<GridRowModel[]>([]);
   const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
+
+const router = useRouter();
 
   useEffect(() => {
     console.log('Getting all trips');
@@ -43,10 +46,7 @@ export default function Home() {
   }, []);
 
   const handleEditClick = (id: GridRowId) => () => {
-    setRowModesModel((prevModel) => ({
-      ...prevModel,
-      [id]: { mode: GridRowModes.Edit },
-    }));
+    router.push(`/${id}/edit`)
   };
 
   //ADD ROW
@@ -241,14 +241,14 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="grid grid-rows-[0px_1fr_0px] min-h-screen pl-10 pb-10 pr-10 sm:p-10 font-[family-name:var(--font-geist-sans)]">
+      <div className="grid grid-rows-[0px_1fr_0px] min-h-screen pb-10 pr-10 sm:p-10 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-[32px] row-start-2 sm:items-start">
           <h1 className="text-4xl font-extrabold text-center tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
             USA trips
           </h1>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <DynamicMap trips={rows} />
-            <div className="">
+            <div className="w-screen h-[200vh]">
               <DataGrid
                 rows={rows}
                 columns={columns}
@@ -257,6 +257,7 @@ export default function Home() {
                 onRowModesModelChange={handleRowModesModelChange}
                 processRowUpdate={processRowUpdate}
                 onProcessRowUpdateError={processRowUpdateError}
+                onRowClick={(params) => router.push(`/${params.id}/edit`)}
                 slots={{ toolbar: EditToolbar }}
                 slotProps={{
                   toolbar: { setRows, setRowModesModel },
