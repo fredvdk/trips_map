@@ -1,5 +1,6 @@
-# Stage 1: Build the app
 FROM node:20-alpine AS builder
+
+ARG NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN
 
 # Set working directory
 WORKDIR /app
@@ -11,6 +12,8 @@ RUN npm install
 # Copy the rest of the app
 COPY . .
 
+RUN npx prisma generate
+
 # Build the Next.js app
 RUN npm run build
 
@@ -20,6 +23,7 @@ FROM node:20-alpine AS runner
 # Set environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
+ENV DATABASE_URL="mysql://root:kinkhoorn@192.168.1.17:3306/trips_map"
 
 # Set working directory
 WORKDIR /app
@@ -40,4 +44,3 @@ EXPOSE 3000
 
 # Start the app
 CMD ["npm", "start"]
-

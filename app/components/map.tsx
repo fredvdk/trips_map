@@ -1,104 +1,114 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import { LatLngExpression, Icon, LatLngBoundsExpression } from 'leaflet';
+import React from 'react';
+import { MapContainer, GeoJSON, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { LatLngExpression, Icon, PathOptions } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { useEffect } from 'react';
-
 import blueMarker from './images/marker_icon_blue.png';
 import redMarker from './images/marker_icon_red.png';
-
-interface Trip {
-  id: string;
-  latitude: number;
-  longitude: number;
-  status: string;
-  destination: string;
-  from: Date;
-  till: Date;
-}
+import { Trip } from '../models/Trip';
 
 interface MapProps {
   trips: Trip[];
+  geoData: GeoJSON.GeoJsonObject;
+  stateColors: { [key: string]: string };
 }
 
-// Custom icons
-const blueIcon = new Icon({
-  iconUrl: blueMarker.src,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-const redIcon = new Icon({
-  iconUrl: redMarker.src,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41],
-});
-
-function formatDate(isoDate: Date) {
-  const date = new Date(isoDate);
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }).replace(',', '');
-}
+const formatDate = (isoDate: Date) =>
+  new Date(isoDate).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: '2-digit',
+  }).replace(',', '');
 
 
-function FitBounds({ trips }: { trips: Trip[] }) {
-  const map = useMap();
-  useEffect(() => {
-    if (trips.length > 0) {
-      const bounds = trips.map((t) => [
-        t.latitude,
-        t.longitude,
-      ]) as LatLngBoundsExpression;
-      map.fitBounds(bounds);
-    }
-  }, [map, trips]);
-  return null;
-}
+function TripMarkers({ trips }: { trips: Trip[] }) {
+  const blueIcon = 
+      new Icon({
+        iconUrl: blueMarker.src,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41],
+      });
 
-
-const drawlocations = (locations: Trip[]) => {
-  return locations.map((location, index) => (
-    <Marker
-      key={index}
-      position={[location.latitude, location.longitude] as LatLngExpression}
-      icon={location.status === 'Completed' ? blueIcon : redIcon}
-    >
-      <Popup>
-        <strong>{location.destination}</strong>
-        <br />
-        {formatDate(location.from)} - {formatDate(location.till)}
-        <br />
-        <a href={`/${location.id}/edit`}>Details</a>
-      </Popup>
-    </Marker>
-  ));
-};
-
-export default function Map(props: MapProps) {
-  const initialPosition: LatLngExpression = [40, -75]; // Default center
-  const { trips } = props;
-
-  useEffect(() => {
-    console.log('Trips changed:', trips);
-    drawlocations(trips);
-  }, [trips]);
+  const redIcon = 
+      new Icon({
+        iconUrl: redMarker.src,
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41],
+      });
 
   return (
-    <MapContainer
-      center={initialPosition}
-      zoom={6}
-      className='w-screen h-[100vh]'
-    >
-      <FitBounds trips={trips} />
+    <>
+      {trips.map((trip) => (
+        <Marker
+          key={trip.id}
+          position={[trip.latitude, trip.longitude]}
+          icon={trip.status === 'Completed' ? blueIcon : redIcon}
+        >
+          <Popup>
+            <strong>{trip.destination}</strong>
+            <br />
+            {formatDate(trip.from)} - {formatDate(trip.till)}
+            <br />
+            <a href={`/${trip.id}/edit`} className="text-blue-600 underline">
+              Details
+            </a>
+          </Popup>
+        </Marker>
+      ))}
+    </>
+  );
+}
+
+function GeoJSONWithInteractions({ geoData, stateColors }: { geoData: GeoJSON.GeoJsonObject, stateColors: { [key: string]: string } }) {
+  const map = useMap(); // ✅ safe here
+
+  const getStateStyle: (feature: any) => PathOptions = (feature) => ({
+    fillColor: stateColors[feature?.properties?.NAME] || '#cccccc',
+    weight: 1,
+    color: 'white',
+    fillOpacity: 0.2,
+  });
+
+  const onEachFeature = (feature: any, layer: L.Layer) => {
+    layer.on({
+      click: () => {
+        const polygon = layer as L.Polygon;
+        if (polygon.getBounds) {
+          map.fitBounds(polygon.getBounds(), { padding: [50, 50] });
+        }
+      },
+      mouseover: (e) => {
+        (e.target as L.Path).setStyle({ weight: 2, fillOpacity: 0.2 });
+      },
+      mouseout: (e) => {
+        (e.target as L.Path).setStyle(getStateStyle(feature));
+      },
+    });
+  };
+
+  return <GeoJSON data={geoData} style={getStateStyle} onEachFeature={onEachFeature} />;
+}
+
+
+export default function Map({ trips, stateColors, geoData }: MapProps) {
+  const defaultCenter: LatLngExpression = [40, -75];
+
+  return (
+    <MapContainer center={defaultCenter} zoom={6} className="w-full h-full" scrollWheelZoom={true}>
+      
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution="&copy; OpenStreetMap contributors"
       />
-      {drawlocations(trips)}
+      <TripMarkers trips={trips} />
+
+      <GeoJSONWithInteractions geoData={geoData} stateColors={stateColors} />
     </MapContainer>
   );
 }

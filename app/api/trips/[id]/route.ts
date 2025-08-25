@@ -4,12 +4,12 @@ import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
 
 export async function GET(
-  req: Request,
-  { params }: { params: { id: string } }
+  req: Request, context: { params : {  id: string  }}
 ) {
   try {
+    const param = await context.params;
     const trip = await prisma.trip.findUnique({
-      where: { id: params.id },
+      where: { id: await param.id },
     });
 
     if (!trip) {

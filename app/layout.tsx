@@ -1,8 +1,8 @@
-import { Geist, Geist_Mono } from "next/font/google";
-import "../globals.css";
+//import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
 
-const geistSans = Geist({
+/* const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
@@ -10,20 +10,21 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-});
+}); */
 
+export const metadata = {
+  title: 'USA Trips',
+  description: 'Roadtrips during stay in the USA',
+};
 
-export default function Layout({
+export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body>
         <AppRouterCacheProvider>
           {children}
         </AppRouterCacheProvider>
@@ -31,3 +32,6 @@ export default function Layout({
     </html>
   );
 }
+
+
+
