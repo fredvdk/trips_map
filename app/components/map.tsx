@@ -13,6 +13,7 @@ interface MapProps {
   trips: Trip[];
   geoData: GeoJSON.GeoJsonObject;
   stateColors: { [key: string]: string };
+  selectedTrip: Trip | null;
 }
 
 const formatDate = (isoDate: Date) =>
@@ -95,10 +96,26 @@ function GeoJSONWithInteractions({ geoData, stateColors }: { geoData: GeoJSON.Ge
   return <GeoJSON data={geoData} style={getStateStyle} onEachFeature={onEachFeature} />;
 }
 
+function FlyToTrip({ trip }: { trip: Trip | null }) {
+  const map = useMap();
 
-export default function Map({ trips, stateColors, geoData }: MapProps) {
+  React.useEffect(() => {
+    if (trip) {
+      map.flyTo([trip.latitude, trip.longitude], 10, { duration: 2.5 });
+    }
+  }, [trip, map]);
+
+  return null;
+}
+
+
+
+export default function Map({ trips, stateColors, geoData, selectedTrip }: MapProps) {
   const defaultCenter: LatLngExpression = [40, -75];
+  console.log('Rendering Map with trips:', trips.length);
+  console.log('Selected Trip:', selectedTrip);
 
+  
   return (
     <MapContainer center={defaultCenter} zoom={6} className="w-full h-full" scrollWheelZoom={true}>
       
@@ -107,6 +124,7 @@ export default function Map({ trips, stateColors, geoData }: MapProps) {
         attribution="&copy; OpenStreetMap contributors"
       />
       <TripMarkers trips={trips} />
+      <FlyToTrip trip={selectedTrip} />
 
       <GeoJSONWithInteractions geoData={geoData} stateColors={stateColors} />
     </MapContainer>

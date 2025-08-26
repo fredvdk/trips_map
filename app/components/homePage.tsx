@@ -1,5 +1,4 @@
 
-import GridTable from "./table";
 import { Button } from "@mui/material";
 import { Trip } from "../models/Trip";
 import { prisma } from '@/app/lib/prisma';
@@ -7,11 +6,10 @@ import path from "path";
 import fs from 'fs';
 import MapWrapper from "./mapWrapper";
 
-//const DynamicMap = dynamic(() => import('./map'), { ssr: false });
-
 export default async function HomePageBody() {
   const rows: Trip[] = await prisma.trip.findMany();
 
+  // Convert Decimal fields to Number
   const trips = rows.map(trip => ({
     ...trip,
     hotelCost: Number(trip.hotelCost),      // convert Decimal → Number
@@ -25,6 +23,7 @@ export default async function HomePageBody() {
   const geoRaw = fs.readFileSync(geoPath, 'utf-8');
   const geoData = JSON.parse(geoRaw);
 
+  // Create stateColors mapping based on trip status
   const createStateColors = () => {
     const statusColorMap = {
       Scheduled: "#FF5733",  // red-ish
@@ -40,19 +39,16 @@ export default async function HomePageBody() {
   };
 
   return (
-    <div className="w-screen">
+    <div className="px-2">
       <h1 className="text-4xl font-extrabold text-center tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
         USA trips
       </h1>
       <Button ><a href="#table">Go to table</a></Button>
-      <div className="grid grid-cols-1 sm:grid-cols-4 h-100">
-        <div className="col-span-3">
-          <MapWrapper trips={trips} geoData={geoData} stateColors={createStateColors()} />
-        </div>
-        <div className="col-span-1">kolom</div>
-      </div>
 
-      <GridTable trips={trips} />
+      <MapWrapper trips={trips} geoData={geoData} stateColors={createStateColors()} />
+
+
+      {/* <GridTable trips={trips} /> */}
     </div>
   );
 }
