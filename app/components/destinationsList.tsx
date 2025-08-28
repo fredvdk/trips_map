@@ -2,6 +2,9 @@
 
 import React from "react";
 import { Trip } from "../models/Trip";
+import { IconButton } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import { useRouter } from "next/navigation";
 
 interface DestinationsListProps {
     trips: Trip[];
@@ -10,6 +13,8 @@ interface DestinationsListProps {
 
 export default function DestinationsList({ trips, setSelectedTrip }: DestinationsListProps) {
     trips.sort((a, b) => a.destination.localeCompare(b.destination) );
+    const router = useRouter();
+
     return (
         <ul className="p-4">
             {trips.map((trip, i) => (
@@ -18,6 +23,19 @@ export default function DestinationsList({ trips, setSelectedTrip }: Destination
                     onClick={()=>setSelectedTrip(trip)}
                     >
                     {trip.destination}, {trip.state}
+                    <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={(e) => {
+                            e.stopPropagation(); // Prevent triggering the li onClick
+                            setSelectedTrip(null);
+                            router.push(`/${trip.id}/`);
+                        }}
+                        className="ml-2"
+                        title="Deselect"
+                        >
+                            <EditIcon />
+                        </IconButton>
                 </li>
             ))}
         </ul>
