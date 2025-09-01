@@ -20,11 +20,6 @@ RUN npm run build
 # Stage 2: Run the app
 FROM node:20-alpine AS runner
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV PORT=3000
-ENV DATABASE_URL="mysql://root:kinkhoorn@192.168.1.17:3306/trips_map"
-
 # Set working directory
 WORKDIR /app
 
