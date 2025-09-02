@@ -16,6 +16,9 @@ interface MapProps {
   selectedTrip: Trip | null;
 }
 
+const defaultCenter: LatLngExpression = [40, -98]; // Center of USA
+const defaultZoom = 3.5;
+
 const formatDate = (isoDate: Date) =>
   new Date(isoDate).toLocaleDateString('en-GB', {
     day: '2-digit',
@@ -103,7 +106,11 @@ function FlyToTrip({ trip }: { trip: Trip | null }) {
     if (trip) {
       map.flyTo([trip.latitude, trip.longitude], 10, { duration: 2.5 });
     }
+    else {
+      map.flyTo(defaultCenter, defaultZoom, { duration: 2.5 });
+    }
   }, [trip, map]);
+
 
   return null;
 }
@@ -111,7 +118,7 @@ function FlyToTrip({ trip }: { trip: Trip | null }) {
 
 
 export default function Map({ trips, stateColors, geoData, selectedTrip }: MapProps) {
-  const defaultCenter: LatLngExpression = [40, -75];
+  
   console.log('Rendering Map with trips:', trips.length);
   console.log('Selected Trip:', selectedTrip);
 

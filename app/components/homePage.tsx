@@ -1,6 +1,5 @@
 
-import { Button } from "@mui/material";
-import { Trip } from "../models/Trip";
+import { Trip } from '@prisma/client';
 import { prisma } from '@/app/lib/prisma';
 import path from "path";
 import fs from 'fs';
@@ -30,7 +29,7 @@ export default async function HomePageBody() {
       Completed: "#337BFF",  // blue-ish
     };
     const stateColors = trips.reduce((acc: Record<string, string>, { state, status }) => {
-      acc[state] = status === "Completed"
+      acc[state!] = status === "Completed"
         ? statusColorMap.Completed
         : statusColorMap.Scheduled;
       return acc;
@@ -40,15 +39,10 @@ export default async function HomePageBody() {
 
   return (
     <div className="px-2">
-      <h1 className="text-4xl font-extrabold text-center tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white">
+      <h1 className="text-4xl font-extrabold text-center tracking-tight text-gray-900 md:text-5xl md:my-8 lg:text-6xl dark:text-white">
         USA trips
       </h1>
-      <Button ><a href="#table">Go to table</a></Button>
-
       <MapWrapper trips={trips} geoData={geoData} stateColors={createStateColors()} />
-
-
-      {/* <GridTable trips={trips} /> */}
     </div>
   );
 }

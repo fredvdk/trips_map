@@ -30,5 +30,5 @@ model Trip {
   transportCost Decimal?  @default(0.00) @db.Decimal(5, 2)
   latitude      Decimal?  @default(0.0) @db.Decimal(9, 6)
   longitude     Decimal?  @default(0.0) @db.Decimal(9, 6)
-  Status        Status?   @default(Completed)
+  Status        Status   @default(Completed)
 }
