@@ -1,17 +1,11 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
 
 generator client {
   provider = "prisma-client-js"
   binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
-}
-
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 enum Status {
@@ -20,19 +14,19 @@ enum Status {
 }
 
 model Trip {
-  id             String      @id 
-  destination    String
-  from           DateTime?
-  till           DateTime?
-  hotel          String?  @default("N/A")
-  hotelCost      Decimal? @default(0.00) @db.Decimal(5, 2)
-  transportMode  String?  @default("Unknown")
-  transportCost  Decimal? @default(0.0) @db.Decimal(5, 2)
-  latitude       Decimal? @default(0.0)  @db.Decimal(9, 6)
-  longitude      Decimal? @default(0.0)  @db.Decimal(9, 6)
-  status         Status?  @default(Completed)
-  notes          String?  @default("")
-  state         String?   @default("")
-  created       DateTime?  @default(now())
-  updated       DateTime?  @updatedAt
+  id            String   @id @default(uuid())
+  destination   String
+  from          DateTime?
+  till          DateTime?
+  hotel         String   @default("N/A")
+  hotelCost     Decimal  @default(0.00) @db.Decimal(5,2)
+  transportMode String   @default("Unknown")
+  transportCost Decimal  @default(0.0)  @db.Decimal(5,2)
+  latitude      Decimal  @default(0.0)  @db.Decimal(9,6)
+  longitude     Decimal  @default(0.0)  @db.Decimal(9,6)
+  status        Status   @default(Completed)
+  notes         String   @default("")
+  state         String   @default("")
+  created       DateTime @default(now())
+  updated       DateTime @updatedAt
 }
