@@ -1,32 +1,32 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x"]
+model Trip {
+  id            String    @id(map: "trips_map_pkey") @default(uuid())
+  destination   String?
+  from          DateTime? @db.Timestamptz(6)
+  till          DateTime? @db.Timestamptz(6)
+  hotel         String?
+  hotelCost     String?
+  transportMode String?
+  transportCost String?
+  latitude      Float?
+  longitude     Float?
+  status        Status?
+  notes         String?
+  state         String?
+  created       DateTime? @db.Timestamptz(6)
+  updated       DateTime  @default(now()) @updatedAt @db.Timestamp(6)
 }
 
 enum Status {
-  Completed
   Scheduled
-}
-
-model Trip {
-  id            String   @id @default(uuid())
-  destination   String
-  from          DateTime?
-  till          DateTime?
-  hotel         String   @default("N/A")
-  hotelCost     Decimal  @default(0.00) @db.Decimal(5,2)
-  transportMode String   @default("Unknown")
-  transportCost Decimal  @default(0.0)  @db.Decimal(5,2)
-  latitude      Decimal  @default(0.0)  @db.Decimal(9,6)
-  longitude     Decimal  @default(0.0)  @db.Decimal(9,6)
-  status        Status   @default(Completed)
-  notes         String   @default("")
-  state         String   @default("")
-  created       DateTime @default(now())
-  updated       DateTime @updatedAt
+  Completed
 }
