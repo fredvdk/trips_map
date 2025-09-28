@@ -3,7 +3,6 @@
 import React from "react";
 import { Trip } from "../models/Trip";
 
-
 interface DestinationsListProps {
     trips: Trip[];
     setSelectedTrip: (trip: Trip | null) => void;
@@ -12,13 +11,12 @@ interface DestinationsListProps {
 export default function DestinationsList({ trips, setSelectedTrip }: DestinationsListProps) {
     trips.sort((a, b) => a.destination.localeCompare(b.destination) );
     
-
     return (
-        <ul className="p-4">
+        <ul className="p-4 overflow-y-auto h-full">
             
             {trips.map((trip, i) => (
                 <li key={`${trip.id}-${i}`} 
-                    className={`border-b flex justify-between hover:cursor-pointer border-gray-200 ${trip.status === 'Completed' ? 'text-gray-400' : 'text-black'} mb-2 pb-2`}
+                    className={`border-b flex justify-between hover:cursor-pointer border-gray-200 ${trip.status === 'Completed' ? 'font-normal' : 'font-bold'} mb-2 pb-2`}
                     onClick={()=>setSelectedTrip(trip)}
                     >
                     

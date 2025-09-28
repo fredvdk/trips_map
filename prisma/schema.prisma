@@ -14,9 +14,9 @@ model Trip {
   from          DateTime? @db.Timestamptz(6)
   till          DateTime? @db.Timestamptz(6)
   hotel         String?
-  hotelCost     String?
+  hotelCost     Float?
   transportMode String?
-  transportCost String?
+  transportCost Float?
   latitude      Float?
   longitude     Float?
   status        Status?
