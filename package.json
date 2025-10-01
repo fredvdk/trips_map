@@ -19,6 +19,7 @@
     "@mui/x-data-grid": "^8.0.0-beta.3",
     "@mui/x-data-grid-generator": "^8.0.0",
     "@prisma/client": "^6.6.0",
+    "@supabase/supabase-js": "^2.58.0",
     "decimal.js": "^10.5.0",
     "dotenv": "^16.5.0",
     "leaflet": "^1.9.4",
