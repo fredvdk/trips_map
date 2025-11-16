@@ -4,12 +4,18 @@ import { prisma } from '@/app/lib/prisma';
 import { NextResponse } from 'next/server';
 
 export async function GET(
-  req: Request, context: { params : {  id: string  }}
+  req: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const param = await context.params;
+    const { id } = params;
+
+    if (!id) {
+      return NextResponse.json({ error: 'Missing trip ID' }, { status: 400 });
+    }
+
     const trip = await prisma.trip.findUnique({
-      where: { id: await param.id },
+      where: { id },
     });
 
     if (!trip) {
@@ -19,6 +25,9 @@ export async function GET(
     return NextResponse.json(trip);
   } catch (error) {
     console.error('GET /api/trips/[id] error:', error);
-    return NextResponse.json({ error: 'Failed to fetch trip' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to fetch trip' },
+      { status: 500 }
+    );
   }
 }

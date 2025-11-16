@@ -26,6 +26,7 @@ export default function EditTripPage({ id }: { id: string }) {
                 if (!res.ok) throw new Error('Failed to fetch trip');
                 const data = await res.json();
                 setTrip(data);
+                router.refresh();
             } catch (err) {
                 if (err instanceof Error) setError(err.message);
             } finally {
@@ -54,6 +55,7 @@ export default function EditTripPage({ id }: { id: string }) {
                         body: JSON.stringify({ id }),
                     });
                     if (res.ok) {
+                        router.refresh();
                         router.push('/');
                     } else {
                         const errMsg = await res.text();
@@ -91,6 +93,7 @@ export default function EditTripPage({ id }: { id: string }) {
             });
 
             if (res.ok) {
+                router.refresh();
                 router.push('/');
             } else {
                 const errMsg = await res.text();

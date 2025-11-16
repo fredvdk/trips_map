@@ -2,7 +2,7 @@
 import { Trip } from '@prisma/client';
 import { prisma } from '@/app/lib/prisma';
 import path from "path";
-import fs from 'fs';
+import fs from 'fs/promises';
 import MapWrapper from "./mapWrapper";
 
 //disable caching and make the page always dynamic
@@ -25,7 +25,7 @@ export default async function HomePageBody() {
 
   // Read GeoJSON from disk
   const geoPath = path.join(process.cwd(), 'data', 'USA_states_geo.json');
-  const geoRaw = fs.readFileSync(geoPath, 'utf-8');
+  const geoRaw = await fs.readFile(geoPath, 'utf-8');
   const geoData = JSON.parse(geoRaw);
 
   // Create stateColors mapping based on trip status
