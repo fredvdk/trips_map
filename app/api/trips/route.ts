@@ -1,13 +1,37 @@
 import { prisma } from '@/app/lib/prisma';
 import { Prisma, Status } from '@prisma/client';
 import { randomUUID } from 'crypto';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 
 const mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
 if (!mapboxToken) console.log('No Mapbox token');
 
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+);
+
+const checkToken = async (req: NextRequest) => {
+  const authHeader = req.headers.get('Authorization');
+  const token = authHeader?.split(' ')[1];
+  if (!token) {
+    return null;
+  }
+  const { data: { user }, error } = await supabase.auth.getUser(token);
+  if (error || !user) {
+    return null;
+  }
+  return user;
+};
+
+
 // GET: Fetch all trips
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const user = await checkToken(req);
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   try {
     const allTrips = await prisma.trip.findMany();
     return NextResponse.json(allTrips);
@@ -53,7 +77,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Ensure numeric fields are proper Prisma.Decimal
+    // Ensure numeric fields are plain numbers (Prisma expects number | null for these fields)
     const latLon = await getLatLon(trip.destination + ' ' + trip.state);
 
     const tripToSave = {
@@ -65,21 +89,21 @@ export async function POST(req: Request) {
       state: trip.state?.replace(/\0/g, '') || '',
       hotelCost:
         trip.hotelCost != null
-          ? new Prisma.Decimal(trip.hotelCost.toString())
-          : "",
+          ? Number(trip.hotelCost)
+          : null,
       transportMode: trip.transportMode?.replace(/\0/g, '') || '',
       transportCost:
         trip.transportCost != null
-          ? new Prisma.Decimal(trip.transportCost.toString())
-          : "",
+          ? Number(trip.transportCost)
+          : null,
       latitude:
         latLon?.latitude != null
-          ? new Prisma.Decimal(latLon.latitude.toString())
-          : new Prisma.Decimal('0'),
+          ? latLon.latitude
+          : 0,
       longitude:
         latLon?.longitude != null
-          ? new Prisma.Decimal(latLon.longitude.toString())
-          : new Prisma.Decimal('0'),
+          ? latLon.longitude
+          : 0,
       status: trip.status === 'Completed' ? Status.Completed : Status.Scheduled,
       created: new Date(),
       updated: new Date()
