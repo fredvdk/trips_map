@@ -5,7 +5,13 @@ import path from "path";
 import fs from 'fs';
 import MapWrapper from "./mapWrapper";
 
+//disable caching and make the page always dynamic
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
+
 export default async function HomePageBody() {
+  
   const rows: Trip[] = await prisma.trip.findMany();
 
   // Convert Decimal fields to Number
