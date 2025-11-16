@@ -1,5 +1,5 @@
 import { prisma } from '@/app/lib/prisma';
-import { Prisma, Status } from '@prisma/client';
+import { Status } from '@prisma/client';
 import { randomUUID } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
@@ -29,9 +29,9 @@ const checkToken = async (req: NextRequest) => {
 // GET: Fetch all trips
 export async function GET(req: NextRequest) {
   const user = await checkToken(req);
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+ // if (!user) {
+ //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+ // }
   try {
     const allTrips = await prisma.trip.findMany();
     return NextResponse.json(allTrips);
